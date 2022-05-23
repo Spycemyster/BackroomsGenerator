@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://Game/Entities/Player.cs" type="Script" id=1]
+[ext_resource path="res://assets/hum.ogg" type="AudioStream" id=2]
+[ext_resource path="res://assets/noise.ogg" type="AudioStream" id=3]
+
+[sub_resource type="CapsuleShape" id=1]
+height = 2.0
+
+[sub_resource type="CapsuleMesh" id=2]
+mid_height = 2.0
+
+[node name="Player" type="KinematicBody"]
+script = ExtResource( 1 )
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0 )
+shape = SubResource( 1 )
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0 )
+mesh = SubResource( 2 )
+material/0 = null
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.36156, -0.649691 )
+fov = 40.0
+near = 0.1
+far = 8192.0
+
+[node name="HumPlayer" type="AudioStreamPlayer3D" parent="."]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 4.28194, 0 )
+stream = ExtResource( 2 )
+max_db = 6.0
+autoplay = true
+
+[node name="NoisePlayer" type="AudioStreamPlayer3D" parent="."]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 1.88538, -2.426 )
+stream = ExtResource( 3 )
+max_db = 6.0
+autoplay = true

@@ -1,0 +1,64 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://Game/Entities/Armie.cs" type="Script" id=1]
+
+[sub_resource type="CubeMesh" id=1]
+size = Vector3( 1, 4, 1 )
+
+[sub_resource type="CubeMesh" id=2]
+size = Vector3( 0.1, 3, 0.1 )
+
+[sub_resource type="CubeMesh" id=3]
+size = Vector3( 1, 1.2, 1 )
+
+[sub_resource type="BoxShape" id=4]
+extents = Vector3( 1.61, 3.299, 0.44 )
+
+[node name="Armie" type="KinematicBody"]
+script = ExtResource( 1 )
+
+[node name="RayCast" type="RayCast" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.865074, 0 )
+enabled = true
+cast_to = Vector3( 0, 0, -20 )
+
+[node name="BodyMesh" type="Spatial" parent="."]
+
+[node name="Body" type="MeshInstance" parent="BodyMesh"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.096, 0 )
+mesh = SubResource( 1 )
+skeleton = NodePath("../..")
+material/0 = null
+
+[node name="LeftArm" type="MeshInstance" parent="BodyMesh"]
+transform = Transform( 0.939693, -0.34202, 0, 0.34202, 0.939693, 0, 0, 0, 1, 0.917, 1.26844, 0 )
+mesh = SubResource( 2 )
+skeleton = NodePath("../..")
+material/0 = null
+
+[node name="RightArm" type="MeshInstance" parent="BodyMesh"]
+transform = Transform( 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 0, 0, 1, -0.917, 1.268, 0 )
+mesh = SubResource( 2 )
+skeleton = NodePath("../..")
+material/0 = null
+
+[node name="LeftLeg" type="MeshInstance" parent="BodyMesh"]
+transform = Transform( 0.939693, -0.34202, 0, 0.34202, 0.939693, 0, 0, 0, 1, 0.917, -1.946, 0 )
+mesh = SubResource( 2 )
+skeleton = NodePath("../..")
+material/0 = null
+
+[node name="RightLeg" type="MeshInstance" parent="BodyMesh"]
+transform = Transform( 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 0, 0, 1, -0.917, -1.946, 0 )
+mesh = SubResource( 2 )
+skeleton = NodePath("../..")
+material/0 = null
+
+[node name="Head" type="MeshInstance" parent="BodyMesh"]
+transform = Transform( 0.987778, 0.12772, -0.0893409, -0.120746, 0.98949, 0.0795528, 0.0985624, -0.0677929, 0.992819, 0, 3.89618, -0.24982 )
+mesh = SubResource( 3 )
+skeleton = NodePath("../..")
+material/0 = null
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+shape = SubResource( 4 )

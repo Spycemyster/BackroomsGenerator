@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=2]
+
+[sub_resource type="SpatialMaterial" id=2]
+transmission_enabled = true
+transmission = Color( 1, 1, 1, 1 )
+
+[sub_resource type="CubeMesh" id=3]
+material = SubResource( 2 )
+size = Vector3( 5, 0.5, 2 )
+
+[node name="CeilingLight" type="MeshInstance"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9.92133, 0 )
+mesh = SubResource( 3 )
+material/0 = null
+
+[node name="OmniLight" type="OmniLight" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.25349, 0 )
+light_energy = 0.05
+light_indirect_energy = 0.0
+light_specular = 0.0
+light_bake_mode = 2
+omni_range = 45.0
+omni_attenuation = 1.41421
