@@ -10,21 +10,22 @@ public class Armie : KinematicBody
         CHASE,
     }
     public Player Player;
-    private RayCast mRaycast;
     public float ChaseSpeed = 10f;
     public float PatrolSpeed = 5f;
     private Vector3 mVelocity = Vector3.Zero;
     private ArmieState mState;
     private Vector3 mLastPositionSeen;
-    private Spatial mBody;
+    private AudioStreamPlayer3D mSFX;
+    private RayCast mPlayerDetector;
+    private const float DETECTION_THRESHOLD_DOT = -0.5f;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        mBody = GetNode<Spatial>("BodyMesh");
+        mPlayerDetector = GetNode<RayCast>("PlayerDetector");
+        mSFX = GetNode<AudioStreamPlayer3D>("AudioStreamPlayer3D");
         Player = GetTree().Root.GetNode<Player>("World/Player");
         mState = ArmieState.IDLE;
-        mRaycast = GetNode<RayCast>("RayCast");
     }
 
     public override void _PhysicsProcess(float delta)
@@ -50,7 +51,24 @@ public class Armie : KinematicBody
     private void ChangeState(ArmieState state)
     {
         mState = state;
-        GD.Print($"Changed to state {state}");
+
+        if (state != ArmieState.CHASE)
+        {
+            mSFX.Playing = false;
+        }
+        else
+        {
+            mSFX.Play(0);
+        }
+    }
+
+    private bool canDetectPlayer()
+    {
+        mPlayerDetector.CastTo = Player.GlobalTransform.origin - GlobalTransform.origin;
+        mPlayerDetector.Rotation = -Rotation;
+        mPlayerDetector.ForceRaycastUpdate();
+
+        return mPlayerDetector.GetCollider() == Player;
     }
 
     private void updatePatrol(float dt)
@@ -60,11 +78,14 @@ public class Armie : KinematicBody
 
     private void updateIdle(float dt)
     {
-        Vector3 ray = GetForward();
-        Vector3 toPlayer = Player.GlobalTransform.origin.DirectionTo(GlobalTransform.origin);
+        Vector3 ray = -GlobalTransform.basis.z;
+        
+        Vector3 toPlayer = (Player.GlobalTransform.origin - GlobalTransform.origin).Normalized();
 
+        float d = ray.Dot(toPlayer);
+        
         // we have found the player
-        if (Math.Abs(ray.Dot(toPlayer)) > 0.9f)
+        if (d > DETECTION_THRESHOLD_DOT && canDetectPlayer())
         {
             ChangeState(ArmieState.CHASE);
         }
@@ -74,8 +95,11 @@ public class Armie : KinematicBody
     private const float LOST_TIMER = 5f;
     private void updateChase(float dt)
     {
+        Vector3 ray = -GlobalTransform.basis.z;
+        Vector3 toPlayer = (Player.GlobalTransform.origin - GlobalTransform.origin);
+        float d = ray.Dot(toPlayer.Normalized());
 
-        if (mRaycast.GetCollider() != Player)
+        if (d < DETECTION_THRESHOLD_DOT || toPlayer.LengthSquared() > 1000 || !canDetectPlayer())
         {
             // player is not within our range
             mUnseenTimer += dt;
@@ -91,15 +115,12 @@ public class Armie : KinematicBody
         {
             mLastPositionSeen = Player.GlobalTransform.origin;
         }
-        mBody.LookAt(mLastPositionSeen, Vector3.Up);
-        Vector3 rot = mBody.Rotation;
+        LookAt(mLastPositionSeen, Vector3.Up);
+        Vector3 rot = Rotation;
         rot.x = 0;
         rot.z = 0;
-        mBody.Rotation = rot;
-    }
-
-    public Vector3 GetForward()
-    {
-        return new Vector3(-Mathf.Sin(mBody.Rotation.y), 0, Mathf.Cos(mBody.Rotation.y));
+        Rotation = rot;
+        Vector3 vel = new Vector3(-Mathf.Sin(rot.y), 0, -Mathf.Cos(rot.y)) * ChaseSpeed;
+        MoveAndSlide(vel, Vector3.Up);
     }
 }

@@ -1,25 +1,37 @@
 [remap]
 
-importer="texture_3d"
-type="Texture3D"
-path="res://.import/ceiling_texture.jpg-682db268caf90e567b8315d9f09574e5.tex3d"
+importer="texture"
+type="StreamTexture"
+path.s3tc="res://.import/ceiling_texture.jpg-682db268caf90e567b8315d9f09574e5.s3tc.stex"
+path.etc2="res://.import/ceiling_texture.jpg-682db268caf90e567b8315d9f09574e5.etc2.stex"
 metadata={
-"vram_texture": false
+"imported_formats": [ "s3tc", "etc2" ],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/ceiling_texture.jpg"
-dest_files=[ "res://.import/ceiling_texture.jpg-682db268caf90e567b8315d9f09574e5.tex3d" ]
+dest_files=[ "res://.import/ceiling_texture.jpg-682db268caf90e567b8315d9f09574e5.s3tc.stex", "res://.import/ceiling_texture.jpg-682db268caf90e567b8315d9f09574e5.etc2.stex" ]
 
 [params]
 
 compress/mode=2
-compress/no_bptc_if_rgb=false
+compress/lossy_quality=0.7
+compress/hdr_mode=0
+compress/bptc_ldr=0
+compress/normal_map=0
 flags/repeat=true
-flags/filter=false
+flags/filter=true
 flags/mipmaps=true
 flags/anisotropic=false
 flags/srgb=1
-slices/horizontal=8
-slices/vertical=8
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/HDR_as_SRGB=false
+process/invert_color=false
+process/normal_map_invert_y=false
+stream=false
+size_limit=0
+detect_3d=false
+svg/scale=1.0

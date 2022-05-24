@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/whisper1.ogg-1d7a64caceaa5a6a3260d9d7ecddd8ba.oggstr"
+
+[deps]
+
+source_file="res://assets/whisper1.ogg"
+dest_files=[ "res://.import/whisper1.ogg-1d7a64caceaa5a6a3260d9d7ecddd8ba.oggstr" ]
+
+[params]
+
+loop=true
+loop_offset=0

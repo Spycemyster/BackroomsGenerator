@@ -1,0 +1,48 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://Scenes/Level0/Level1.cs" type="Script" id=1]
+[ext_resource path="res://Game/PauseHandler.cs" type="Script" id=2]
+[ext_resource path="res://Scenes/Level0/Ceiling.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Scenes/Level0/CeilingLight.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Scenes/Level0/Floor.tscn" type="PackedScene" id=5]
+[ext_resource path="res://Game/Entities/Player.tscn" type="PackedScene" id=7]
+[ext_resource path="res://Game/WorldGeneration/Chunk.tscn" type="PackedScene" id=8]
+[ext_resource path="res://Scenes/Level0/Wall.tscn" type="PackedScene" id=9]
+
+[sub_resource type="Environment" id=1]
+background_mode = 1
+ambient_light_color = Color( 1, 0.866667, 0, 1 )
+ambient_light_energy = 0.05
+ambient_light_sky_contribution = 0.0
+fog_enabled = true
+fog_color = Color( 0.945098, 1, 0, 1 )
+fog_depth_end = 0.0
+fog_depth_curve = 0.752809
+
+[node name="World" type="Spatial"]
+script = ExtResource( 1 )
+PlayerPath = NodePath("Player")
+Radius = 11
+
+[node name="Player" parent="." instance=ExtResource( 7 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.25772, 0 )
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 1 )
+
+[node name="Timer" type="Timer" parent="."]
+
+[node name="CeilingLight" parent="." instance=ExtResource( 4 )]
+
+[node name="Chunks" type="Node" parent="."]
+
+[node name="Chunk" parent="Chunks" instance=ExtResource( 8 )]
+
+[node name="Ceiling" parent="Chunks/Chunk" instance=ExtResource( 3 )]
+
+[node name="Floor" parent="Chunks/Chunk" instance=ExtResource( 5 )]
+
+[node name="Wall" parent="Chunks/Chunk" instance=ExtResource( 9 )]
+
+[node name="PauseHandler" type="Node" parent="."]
+script = ExtResource( 2 )

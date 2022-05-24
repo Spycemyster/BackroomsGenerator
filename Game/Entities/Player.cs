@@ -35,7 +35,7 @@ public class Player : KinematicBody
     public override void _Ready()
     {
         mCamera = GetNode<Camera>("Camera");
-        Input.SetMouseMode(Input.MouseMode.Captured);
+        mVelocity = Vector3.Zero;
     }
 
     public override void _PhysicsProcess(float delta)
@@ -72,14 +72,6 @@ public class Player : KinematicBody
         mVelocity.y -= Globals.GRAVITY * delta;
 
         mVelocity = MoveAndSlide(mVelocity, Vector3.Up);
-
-        if (Input.IsActionJustPressed("pause"))
-        {
-            if (Input.GetMouseMode() != Input.MouseMode.Visible)
-                Input.SetMouseMode(Input.MouseMode.Visible);
-            else if (Input.GetMouseMode() != Input.MouseMode.Captured)
-                Input.SetMouseMode(Input.MouseMode.Captured);
-        }
     }
 
     public override void _Input(InputEvent @event)

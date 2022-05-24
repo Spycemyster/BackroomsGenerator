@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://assets/ceiling_texture.jpg" type="Texture" id=1]
-[ext_resource path="res://Scenes/Level1/CeilingLight.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Scenes/Level0/CeilingLight.tscn" type="PackedScene" id=2]
 
 [sub_resource type="SpatialMaterial" id=6]
 albedo_texture = ExtResource( 1 )

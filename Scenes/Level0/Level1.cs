@@ -1,7 +1,6 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 public class Level1 : Spatial
 {
@@ -106,6 +105,24 @@ public class Level1 : Spatial
 
 			return (1, 0);
 		}
+		
+
+		public static (int x, int z) GetVectorTo(Direction dir)
+		{
+			switch(dir)
+			{
+				case Direction.NORTH:
+					return (0, 1);
+				case Direction.EAST:
+					return (-1, 0);
+				case Direction.SOUTH:
+					return (0, -1);
+				case Direction.WEST:
+					return (1, 0);
+			}
+
+			return (1, 0);
+		}
 
 		/// <summary>
 		/// All the directions that this node is open to.
@@ -133,22 +150,26 @@ public class Level1 : Spatial
 	public float ChunkSize = 20f;
 
 	[Export]
-	private string mFloorPath = "res://Scenes/Level1/Floor.tscn";
+	private string mFloorPath = "res://Scenes/Level0/Floor.tscn";
 	[Export]
-	private string mCeilingPath = "res://Scenes/Level1/Ceiling.tscn";
+	private string mCeilingPath = "res://Scenes/Level0/Ceiling.tscn";
 	[Export]
-	private string mWallPath = "res://Scenes/Level1/Wall.tscn";
+	private string mWallPath = "res://Scenes/Level0/Wall.tscn";
+
+	[Export]
+	private string mArmiePath = "res://Game/Entities/Armie.tscn";
 
 	private Player mPlayer;
 	private OpenSimplexNoise mNoise;
 	private Node mChunkGroup;
 	private NavigationMeshInstance mNavMeshInst;
 	private RandomNumberGenerator mRNG;
+	private PauseHandler mPauser;
 	private Timer mTimer;
 
 	// used to build a chunk
 	// TODO: Create more elegant way of building chunks
-	private PackedScene mFloorScene, mCeilingScene, mWallScene, mChunkScene;
+	private PackedScene mFloorScene, mCeilingScene, mWallScene, mChunkScene, mArmieScene;
 
 	// reference to generated chunks for easy unloading and loading
 	private Dictionary<(int x, int z), Chunk> mChunks = new Dictionary<(int x, int z), Chunk>();
@@ -159,6 +180,7 @@ public class Level1 : Spatial
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		mPauser = GetNode<PauseHandler>("PauseHandler");
 		mChunkGroup = GetNode("Chunks");
 
 		Chunk c = mChunkGroup.GetNode<Chunk>("Chunk");
@@ -167,6 +189,7 @@ public class Level1 : Spatial
 		mFloorScene = GD.Load<PackedScene>(mFloorPath);
 		mWallScene = GD.Load<PackedScene>(mWallPath);
 		mCeilingScene = GD.Load<PackedScene>(mCeilingPath);
+		mArmieScene = GD.Load<PackedScene>(mArmiePath);
 		mChunkScene = GD.Load<PackedScene>("res://Game/WorldGeneration/Chunk.tscn");
 
 		mTimer = GetNode<Timer>("Timer");
@@ -180,6 +203,25 @@ public class Level1 : Spatial
 		mRNG.Randomize();
 
 		Check();
+	}
+
+	public override void _Process(float dt)
+	{
+		// player wins
+		if (mPlayer.Transform.origin.y < -2f)
+		{
+			// reset the game
+			PackedScene scene = GD.Load<PackedScene>("res://Scenes/Level0/Level0.tscn");
+			Level1 newLevel = scene.InstanceOrNull<Level1>();
+			newLevel.Name = "World";
+			Name = "ToRemove";
+			Viewport p = GetTree().Root;
+			p.RemoveChild(this);
+			p.AddChild(newLevel);
+			QueueFree();
+			
+			return;
+		}
 	}
 
 	private void UpdateGraphData(int originX, int originZ)
@@ -264,15 +306,34 @@ public class Level1 : Spatial
 
 			if (!mData.ContainsKey(v.Position))
 				mData.Add(v.Position, v);
+			
 			// add the edge back towards this node's parent
+			int numEdges = 0;
 			if (v.Parent != null && mRNG.Randf() > 0.3f)
 			{
 				LevelNode.Direction dir = v.GetDirectionTo(v.Parent);
 				v.AddDirection(dir);
+				numEdges++;
 			}
+
+			for (int i = 0; i < (int)LevelNode.Direction.MAX; i++)
+			{
+				LevelNode.Direction dir = LevelNode.Direction.MAX;
+				(int x, int z) pos = LevelNode.GetVectorFrom((LevelNode.Direction)i);
+				if (mRNG.Randf() > 0.1f)
+				{
+					if (mData.ContainsKey((pos.x + v.Position.x, pos.z + v.Position.z)))
+					{
+						if (v.AddDirection(dir))
+							numEdges++;
+					}
+				}
+			}
+
+			int minEdges = (Mathf.Abs(dx + dz) < 3) ? 3 : 2;
+
 			// generate edges in random directions
-			int numEdges = 1;
-			while (numEdges <= 1) // include more than 1 edge in it. No dead ends (maybe add some later)
+			while (numEdges <= minEdges) // include more than 1 edge in it. No dead ends (maybe add some later)
 			{
 				if (mRNG.RandiRange(0, 1) == 0) // north
 				{
@@ -320,14 +381,13 @@ public class Level1 : Spatial
 			}
 		}
 
-		//GD.Print($"Finished pre-generating node graph with {mData.Count} nodes");
 	}
 
 	private void Check()
 	{
+
 		int chunkX = (int)((mPlayer.Transform.origin.x - ChunkSize / 2) / ChunkSize);
 		int chunkZ = (int)((mPlayer.Transform.origin.z - ChunkSize / 2) / ChunkSize);
-		GD.Print($"Player at chunk ({chunkX}, {chunkZ})");
 		UpdateGraphData(chunkX, chunkZ);
 		// remove chunks outside the player range
 		List<(int x, int z)> toRemove = new List<(int x, int z)>();
@@ -362,6 +422,13 @@ public class Level1 : Spatial
 					chunkTransform.origin = new Vector3(cx * ChunkSize, 0, cz * ChunkSize);
 					chunk.Transform = chunkTransform;
 					mChunks.Add(key, chunk);
+					if (mRNG.Randf() > 0.995 && Mathf.Abs(cx + cz) > 5)
+					{
+						Armie arm = mArmieScene.Instance<Armie>();
+						AddChild(arm);
+						arm.Translation = chunk.Translation + new Vector3(0, 5, -4);
+						//arm.Rotation = new Vector3(0, mRNG.RandfRange(-Mathf.Pi, Mathf.Pi), 0);
+					}
 				}
 			}
 		}
@@ -377,7 +444,8 @@ public class Level1 : Spatial
 	private Chunk GenerateChunkAt(int x, int z)
 	{
 		Chunk chunk = mChunkScene.Instance<Chunk>();
-		if (mRNG.Randf() < 0.995f)
+		chunk.Name = $"({x},{z})";
+		if (mRNG.Randf() < 0.985f || Math.Abs(x + z) < 10)
 		{
 			StaticBody floor = mFloorScene.Instance<StaticBody>();
 			chunk.AddChild(floor);
@@ -386,11 +454,11 @@ public class Level1 : Spatial
 		{
 
 		}
-		//StaticBody ceiling = mCeilingScene.Instance<StaticBody>();
-		//if (mRNG.Randf() > 0.5f)
-		//	RemoveCeilingLight(ref ceiling);
+		StaticBody ceiling = mCeilingScene.Instance<StaticBody>();
+		if (mRNG.Randf() > 0.5f)
+			RemoveCeilingLight(ref ceiling);
 		
-		//chunk.AddChild(ceiling);
+		chunk.AddChild(ceiling);
 		
 		if (!mData.ContainsKey((x, z)) || !mData[(x, z)].IsExplored)
 			return chunk;
